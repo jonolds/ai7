@@ -3,7 +3,6 @@ import java.io.FileNotFoundException;
 import java.util.Random;
 import java.util.Scanner;
 
-import com.jonslib.JonsLib;
 
 public class QLearner extends JonsLib {
 	Random r;
@@ -12,25 +11,34 @@ public class QLearner extends JonsLib {
 	int act = 0;
 	int[] st;
 	
-	void readMap(String filename) throws FileNotFoundException {
+	void loadMap(String filename) throws FileNotFoundException {
 		Scanner sc = new Scanner(new File(filename));
-		if(sc.hasNextLine()) {
-			char[] line = sc.nextLine().replace(",", "").toCharArray();
-			M = new Mat(line.length);
-			M.pushRow(translateLine(line));
-		}
+		M = new Mat();
+//		if(sc.hasNextLine()) {
+//			M = new Mat(translateLine(sc.nextLine().replace(",", "").toCharArray()));
+//			while(sc.hasNextLine())
+//				M.pushRow(translateLine(sc.nextLine().replace(",", "").toCharArray()));
+//			sc.close();
+//		}
+//		else
+//			error("Empty data file");
 		while(sc.hasNextLine())
 			M.pushRow(translateLine(sc.nextLine().replace(",", "").toCharArray()));
 		sc.close();
+
+		
 	}
 	double[] translateLine(char[] ln) {
-		double[] row = new double[ln.length];
-		ints(0, ln.length).forEach(i-> row[i] = (ln[i] == '#') ? -1.0 : (ln[i] == 'G') ? 100.0 : 0.0 );
+		double[] row = new double[ln.length*4];
+		ints(0, ln.length).forEach(c-> ints(0, 4).forEach(i->row[slot(c, i)] = (ln[c] == '#') ? -1.0 : (ln[c] == 'G') ? 100.0 : 0.0));
 		return row;
+	}
+	int slot(int col, int slot) {
+		return 4*col + slot;
 	}
 	
 	QLearner() throws FileNotFoundException {
-		readMap("in_map.txt");
+		loadMap("in_map.txt");
 		r = new Random();
 		st= new int[] {M.rows() -1, 0};
 		M.printAll();
