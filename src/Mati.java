@@ -25,7 +25,7 @@ public class Mati extends JonsLib {
 	
 	void pushRow(int[] newRow) {
 		try {
-			int[][] d2 = ints(0, newRow.length).mapToObj(i->ints(0,4).mapToDouble(z->newRow[i]).toArray()).toArray(int[][]::new);
+			int[][] d2 = ints(0, newRow.length).mapToObj(i->ints(0,4).map(z->newRow[i]).toArray()).toArray(int[][]::new);
 			data.add(d2);
 		} catch(Exception e) {
 			this.data = new ArrayList<>();

@@ -14,10 +14,6 @@ public class QLearner extends JonsLib {
 	void loadMap(String filename) throws IOException {
 		Files.lines(Paths.get(filename)).forEach(ln->{M.pushRow(lnToArr(ln.replace(",", "").toCharArray()));});
 		if(M.isEmpty()) error("Empty data file");
-//		ints(0, M.cols()).forEach(c->{if(M.row(0)[4*c + 1] < pay) M.set(0, c, 1, -1);});
-//		ints(0, M.cols()).forEach(c->{if(M.last()[4*c + 2] < pay)M.set(M.rows()-1, c, 2, -1);});
-//		ints(0, M.rows()).forEach(r->{if(M.row(r)[0] < pay) M.set(r, 0, 0, -1);});
-//		ints(0, M.rows()).forEach(r->{if(M.row(r)[M.cols()*4-1] < pay) M.set(r, M.cols()-1, 3, -1);});
 		
 		M.printAll();
 		
