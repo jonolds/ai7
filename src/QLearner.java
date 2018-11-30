@@ -1,58 +1,62 @@
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Random;
-import java.util.Scanner;
 
 
 public class QLearner extends JonsLib {
-	Random r;
-	Mat Q, R, M;
-	static final double epsilon = .05, gamma = .97, ak = .1;
-	int act = 0;
-	int[] st;
-	
-	void loadMap(String filename) throws FileNotFoundException {
-		Scanner sc = new Scanner(new File(filename));
-		M = new Mat();
-//		if(sc.hasNextLine()) {
-//			M = new Mat(translateLine(sc.nextLine().replace(",", "").toCharArray()));
-//			while(sc.hasNextLine())
-//				M.pushRow(translateLine(sc.nextLine().replace(",", "").toCharArray()));
-//			sc.close();
-//		}
-//		else
-//			error("Empty data file");
-		while(sc.hasNextLine())
-			M.pushRow(translateLine(sc.nextLine().replace(",", "").toCharArray()));
-		sc.close();
+	Random r = new Random();
+	Mat Q, R, M = new Mat();
+	static final double epsilon = .05, gamma = .97, ak = .1, pay = 100;
+	static int[] startState;
 
-		
+	
+	void loadMap(String filename) throws IOException {
+		Files.lines(Paths.get(filename)).forEach(ln->{M.pushRow(lnToArr(ln.replace(",", "").toCharArray()));});
+		if(M.isEmpty()) error("Empty data file");
+		ints(0, M.cols()).forEach(c->{if(M.row(0)[4*c + 1] < pay) M.set(0, c, 1, -1);});
+		ints(0, M.cols()).forEach(c->{if(M.last()[4*c + 2] < pay)M.set(M.rows()-1, c, 2, -1);});
+		ints(0, M.rows()).forEach(r->{if(M.row(r)[0] < pay) M.set(r, 0, 0, -1);});
+		ints(0, M.rows()).forEach(r->{if(M.row(r)[M.cols()*4-1] < pay) M.set(r, M.cols()-1, 3, -1);});
 	}
-	double[] translateLine(char[] ln) {
+	double[] lnToArr(char[] ln) {
 		double[] row = new double[ln.length*4];
-		ints(0, ln.length).forEach(c-> ints(0, 4).forEach(i->row[slot(c, i)] = (ln[c] == '#') ? -1.0 : (ln[c] == 'G') ? 100.0 : 0.0));
+		ints(0, ln.length).forEach(c-> ints(0, 4).forEach(i->row[slot(c, i)] = (ln[c] == '#') ? -1 : (ln[c] == 'G') ? pay : 0));
 		return row;
 	}
 	int slot(int col, int slot) {
 		return 4*col + slot;
 	}
 	
-	QLearner() throws FileNotFoundException {
+	double Qia(int[] i, int act) {
+		return 0.0;
+	}
+	
+	
+	QLearner() throws IOException {
 		loadMap("in_map.txt");
-		r = new Random();
-		st= new int[] {M.rows() -1, 0};
+		startState = new int[] {M.rows() -1, 0};
 		M.printAll();
 	}
-	void run() {
+	void run(int[] state) {
+		int[] i = state;
+		int act;
+		
 		if(r.nextDouble() < epsilon)
 			act = r.nextInt(4);
 		else {
 			act = 0;
-			ints(0, 4).forEach(i->act = getMoveVal(st, i) > getMoveVal(st, act) ? i : act);
-			act = getMoveVal(st, act) == 0.0 ? r.nextInt(4) : act;
+//			act = ints(0, 4).map(z->getMoveVal(i, z) > getMoveVal(i, act) ? z : act);
+			act = getMoveVal(i, act) == 0.0 ? r.nextInt(4) : act;
 		}
-		st = makeMove(act);
+		i = makeMove(act);
 	}
+
+	public static void main(String[] args) throws IOException {
+		QLearner ql = new QLearner();
+		ql.run(startState);
+	}
+	
 	int[] makeMove(int move) { 
 		return new int[] {99,99}; 
 	}
@@ -61,8 +65,5 @@ public class QLearner extends JonsLib {
 	}
 	boolean isConverged() { 
 		return false; 
-	}
-	public static void main(String[] args) throws FileNotFoundException {
-		(new QLearner()).run();
 	}
 }
