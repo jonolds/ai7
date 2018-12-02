@@ -7,7 +7,7 @@ import java.util.Random;
 public class QLearner extends JonsLib {
 	Random r;
 	Mat Q, R= new Mat();
-	static final double epsilon = .1, gamma = .97, ak = .1, pay = 99, penalty = -99;
+	static final double epsilon = .45, gamma = .97, ak = .1, pay = Double.MAX_VALUE, penalty = Double.MIN_VALUE;
 	static int[] st, startState;
 	int iters = 0;
 
@@ -17,12 +17,12 @@ public class QLearner extends JonsLib {
 	
 	void run() {
 		st = startState;
-		for(int a = 0; a < 500; a++) {
-			for(int b = 0; b < 999999; b++) 
+		for(int a = 0; a < 200; a++) {
+			for(int b = 0; b < 4999999; b++) 
 				run2();
 			println("\n\n\n\n\n");
 			println(a);
-			Q.policy();
+			Q.policy(R);
 		}
 		println();
 		Q.printAll();
@@ -41,14 +41,9 @@ public class QLearner extends JonsLib {
 		int[] i = copy(st);
 		int act = 5;
 		
-		if(r.nextDouble() < epsilon)
-			act = r.nextInt(4);
-		else
-			act = ((act = Q.maxSlot(i[0], i[1])) >3) ? r.nextInt(4) : act;
+		act = (r.nextDouble() < epsilon) ? r.nextInt(4) : ((act = Q.maxSlot(i[0], i[1])) >3) ? r.nextInt(4) : act;
 			
-//		print(state); println(" " + act);
 		int[] i2 = doAction(act);
-
 
 		//Learn from move if i2 != i
 		if(i[0] != i2[0] || i[1] != i2[1]) {
@@ -62,11 +57,7 @@ public class QLearner extends JonsLib {
 			double newIval = left + right;
 			Q.setSlot(i[0], i[1], act, newIval);
 		}
-		if(R.row(i2[0])[i2[1]][act] >0)
-			st = copy(startState);
-		else
-			st = copy(i2);
-//		iters++;
+		st = (R.row(i2[0])[i2[1]][act] >0) ? copy(startState) : copy(i2);
 	}
 	
 

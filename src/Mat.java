@@ -26,12 +26,21 @@ public class Mat extends JonsLib {
 	}
 	
 	//PRINT POLICY
-	void policy() {
-		for(int r = 0; r < rows(); r++) {
+	void policy(Mat R) {
+		char[][] p = new char[rows()][cols()];
+		for(int r = 0; r < rows(); r++)
 			for(int c = 0; c < cols(); c++) {
 				int s = maxSlot(r, c);
-				print(s == 0 ? "< " : (s == 1) ? "^ " : (s == 2) ? "v " : (s == 3) ? "> " : "+ ");
+				p[r][c] = s == 0 ? '<' : (s == 1) ? '^' : (s == 2) ? 'v' : (s == 3) ? '>' : '+';
+				if(R.row(r)[c][0] == Double.MIN_VALUE)
+					p[r][c] = '#';
+				else if(R.row(r)[c][0] == Double.MAX_VALUE)
+					p[r][c] = 'G';
 			}
+		
+		for(int r = 0; r < rows(); r++) {
+			for(int c = 0; c < cols(); c++) 
+				print(p[r][c] + " ");
 			println();
 		}
 	}
