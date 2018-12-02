@@ -1,15 +1,18 @@
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class Mat extends JonsLib {
 	private ArrayList<double[][]> data;
 	private int cols;
 	Mat() {}
 	
-	Mat(int rows, int cols) {
+	Mat(int r, int c) {
 		data = new ArrayList<>();
-		ints(0, rows).forEach(i->data.add(new double[cols][4]));
-		this.cols = cols;
+		ints(0, r).forEach(i->data.add(new double[c][4]));
+		this.cols = c;
+//		this.rows = r;
 	}
 
 	Mat(int cols) {
@@ -19,26 +22,51 @@ public class Mat extends JonsLib {
 	
 	Mat(double[] row) {
 		this.data = new ArrayList<>(cols = row.length);
-		pushRow(row);
-		
+		pushSlottedRow(row);
 	}
 	
-	void pushRow(double[] newRow) {
+	//PRINT POLICY
+	void policy() {
+		for(int r = 0; r < rows(); r++) {
+			for(int c = 0; c < cols(); c++) {
+				int s = maxSlot(r, c);
+				print(s == 0 ? "< " : (s == 1) ? "^ " : (s == 2) ? "v " : (s == 3) ? "> " : "+ ");
+			}
+			println();
+		}
+	}
+	
+	//Returns slot with highest value or 9 if all slots are 0.
+	int maxSlot(int r, int c) {
+		int best_slot = 0;
+		double[] slots = row(r)[c];
+		for(int i = 1; i < 4; i++)
+			if(slots[i] > slots[best_slot])
+				best_slot = i;
+		return (slots[best_slot] == 0) ? 9 : best_slot;
+	}
+	
+	double maxValue(int r, int c) {
+		int maxSlot = maxSlot(r, c);
+		return maxSlot < 4 ? row(r)[c][maxSlot] : 0;
+	}
+	
+	void pushSlottedRow(double[] newRow) {
+		double[][] d2 = ints(0, newRow.length).mapToObj(i->ints(0,4).mapToDouble(z->newRow[i]).toArray()).toArray(double[][]::new);
 		try {
-			double[][] d2 = ints(0, newRow.length).mapToObj(i->ints(0,4).mapToDouble(z->newRow[i]).toArray()).toArray(double[][]::new);
 			data.add(d2);
 		} catch(Exception e) {
 			this.data = new ArrayList<>();
-			pushRow(newRow);
+			pushSlottedRow(newRow);
 		}
 		cols = newRow.length;
+//		rows = data.size();
 		if(newRow.length != cols) error("pushRow() error: mismatched column size");
-//		data.add(newRow);
 	}
 	
-//	void setCol(int col, double d) { ints(0, rows()).forEach(i->row(i)[col] = d); }
-//	void setSlotInRow(int slot, int row, double d) {ints(0, cols()).forEach(c->row(row)[c*4 + slot] = d);}
-//	void set(int r, int c, int s, double d) { row(r)[4*c + s] = d; }
+	void setSlot(int r, int c, int s, double v) {
+		row(r)[c][s] = v;
+	}
 	
 	int rows() { return data.size(); }
 	int cols() { return cols; }
@@ -52,11 +80,19 @@ public class Mat extends JonsLib {
 	}
 	
 	void printAll() {
-		DecimalFormat df = new DecimalFormat("###.#");
 		for(int r = 0; r < rows(); r++) {
-			println(row(r));
+			final double[][] rr = row(r);
+			println(ints(0, rr.length).mapToObj(i->toStrMAT(rr[i])).collect(Collectors.joining(",")));
 		}
 	}
+	String toStrMAT(double[] arr) { 
+		return "[" + Arrays.stream(arr).mapToObj(i->formatDbl(i)).collect(Collectors.joining(",")) + "]"; 
+	}
+	String formatDbl(double d) {
+		DecimalFormat df = new DecimalFormat("#0.#");
+		return String.format("%3s", df.format((int)(d*10)));
+	}
+	
 	
 	boolean isEmpty() { return data.isEmpty(); }
 	
